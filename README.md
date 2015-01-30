@@ -31,7 +31,6 @@ Finally, Syringe can be extended with custom detectors and injectors classes, en
 	//And when loops are detected, we inject another string:
 	injection = TestLogger.class.getCanonicalName() + ".loopBegin();";
 	confSrc.addInjector(LoopDetect.getEventName(), new GenericInjector(injection));
-	String injection = TestLogger.class.getCanonicalName() + ".loopBegin();";
 	
 	//If you want to inject executable code, 
 	//Syringe may copy classes to a location 
