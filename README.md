@@ -8,6 +8,7 @@ Finally, Syringe can be extended with custom detectors and injectors classes, en
 
 # Example of use
 
+```java
 	TestLogger.totalCount = 0;
 	
 	//You must configure the Syringe by adding detectors 
@@ -57,5 +58,5 @@ Finally, Syringe can be extended with custom detectors and injectors classes, en
 	
 	//Just kidding about the 99.99EU/mo
 	//Is really more... ;)
-	
+```	
 	
