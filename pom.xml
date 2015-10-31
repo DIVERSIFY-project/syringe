@@ -7,7 +7,7 @@
     <groupId>fr.inria.diversify</groupId>
     <artifactId>syringe</artifactId>
     <packaging>pom</packaging>
-    <version>0.1</version>
+    <version>0.2</version>
     <modules>
         <module>syringe_reader</module>
         <module>syringe_injector</module>
