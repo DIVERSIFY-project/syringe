@@ -1,6 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.code.CtCase;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.cu.CompilationUnit;
@@ -27,12 +27,12 @@ public class CaseDetect extends BaseDetector<CtCase> {
     /**
      * Injectors to inject in the begining of the method
      */
-    Collection<Injector> beginInjectors;
+    Collection<BaseInjector> beginInjectors;
 
     /**
      * Injectors to inject at the end of the method
      */
-    Collection<Injector> endInjectors;
+    Collection<BaseInjector> endInjectors;
 
     /**
      * Method detector constructor
@@ -42,12 +42,12 @@ public class CaseDetect extends BaseDetector<CtCase> {
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<Injector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
+        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
     }
 
-    private void processStatement(List<CtStatement> es, Collection<Injector> begin, Collection<Injector> end) {
+    private void processStatement(List<CtStatement> es, Collection<BaseInjector> begin, Collection<BaseInjector> end) {
         SourcePosition sp = es.get(0).getPosition();
         CompilationUnit cu = sp.getCompilationUnit();
         int index = sp.getSourceStart();

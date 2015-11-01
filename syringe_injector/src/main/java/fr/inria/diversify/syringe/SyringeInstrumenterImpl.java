@@ -6,7 +6,6 @@ import fr.inria.diversify.syringe.detectors.Detector;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import spoon.compiler.Environment;
-import spoon.processing.AbstractProcessor;
 import spoon.processing.ProcessingManager;
 import spoon.processing.Processor;
 import spoon.reflect.factory.Factory;
@@ -128,7 +127,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
             //Detect and inject
             applyProcessor(factory, d);
 
-            fragmentsInserted += d.getElementsDetected();
+            fragmentsInserted += d.getElementsDetectedCount();
         }
 
 

@@ -24,8 +24,12 @@ public class DetectionData {
      */
     private HashMap<String, String> params;
 
-    //Indicate if it is paired with another detection
+    /**
+     * Indicate if it is paired with another detection like in the case of a opening and a close bracket,
+     * the begin and the end of a loop, block, etc.
+     */
     private HashMap<String, Integer> idMap;
+
     private Integer elementId;
 
     private boolean endWithSemiColon;

@@ -8,7 +8,8 @@ import java.util.Map;
 /**
  * Created by marodrig on 10/12/2014.
  */
-public class GenericInjector extends Injector {
+@Deprecated
+public class GenericInjector extends BaseInjector {
 
     /**
      * Creates a generic injector
@@ -26,5 +27,10 @@ public class GenericInjector extends Injector {
             injection = injection.replaceAll("%" + e.getKey()+"%", e.getValue());
         }
         return injection;
+    }
+
+    @Override
+    public void inject(CtElement element, DetectionData data) {
+
     }
 }

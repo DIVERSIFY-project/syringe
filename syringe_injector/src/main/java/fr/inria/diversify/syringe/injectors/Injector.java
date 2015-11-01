@@ -1,25 +1,18 @@
 package fr.inria.diversify.syringe.injectors;
 
-import spoon.reflect.declaration.CtElement;
 import fr.inria.diversify.syringe.detectors.DetectionData;
+import spoon.reflect.declaration.CtElement;
 
 /**
- * Created by marodrig on 08/12/2014.
+ * Interface to all injectors. An injector is a class that injects code at specific points
+ *
+ * Created by marodrig on 31/10/2015.
  */
-public abstract class Injector {
+public interface Injector {
 
+    String getInjectionString();
 
-    //A generic injection string
-    private String injectionString;
+    void setInjectionString(String s);
 
-    public String getInjectionString() {
-        return injectionString;
-    }
-
-    public void setInjectionString(String s) {
-        injectionString = s;
-    }
-
-    public abstract String injection(CtElement element, DetectionData data);
-
+    void inject(CtElement element, DetectionData data);
 }

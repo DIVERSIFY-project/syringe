@@ -1,6 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.reference.CtTypeReference;
@@ -54,9 +54,9 @@ public class TestDetect extends MethodDetect {
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<Injector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
+        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
     }
 
 }

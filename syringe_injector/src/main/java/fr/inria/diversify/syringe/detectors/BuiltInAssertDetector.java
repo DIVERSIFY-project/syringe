@@ -6,7 +6,7 @@ package fr.inria.diversify.syringe.detectors;
  * Created by marodrig on 22/12/2014.
  */
 
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.code.CtAssert;
 import spoon.reflect.cu.CompilationUnit;
 import spoon.reflect.cu.SourceCodeFragment;
@@ -23,7 +23,7 @@ public class BuiltInAssertDetector extends BaseDetector<CtAssert<?>> {
 
     public static String END_KEY = "@Built.In.Assert.End@";
 
-    private Collection<Injector> endInjectors;
+    private Collection<BaseInjector> endInjectors;
 
     public BuiltInAssertDetector() {
         super();
@@ -50,7 +50,7 @@ public class BuiltInAssertDetector extends BaseDetector<CtAssert<?>> {
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
     }
 }

@@ -8,7 +8,8 @@ import java.util.Map;
 /**
  * Created by marodrig on 12/12/2014.
  */
-public class GenericInjectWithId extends Injector {
+@Deprecated
+public class GenericInjectWithId extends BaseInjector {
 
     private String methodParams;
 
@@ -54,5 +55,10 @@ public class GenericInjectWithId extends Injector {
      */
     public void setMethodCall(String methodCall) {
         this.methodCall = methodCall;
+    }
+
+    @Override
+    public void inject(CtElement element, DetectionData data) {
+
     }
 }

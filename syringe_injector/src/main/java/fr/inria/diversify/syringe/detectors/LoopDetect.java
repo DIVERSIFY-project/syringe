@@ -1,6 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import org.apache.log4j.Logger;
 import spoon.reflect.code.CtLoop;
 import spoon.reflect.cu.CompilationUnit;
@@ -37,22 +37,22 @@ public class LoopDetect extends BaseDetector<CtLoop> {
     /**
      * Injectors to inject in the begining of the method
      */
-    protected Collection<Injector> beforeInjectors;
+    protected Collection<BaseInjector> beforeInjectors;
 
     /**
      * Injectors to inject at the end of the method
      */
-    protected Collection<Injector> afterInjectors;
+    protected Collection<BaseInjector> afterInjectors;
 
     /**
      * Injectors to inject in the begining of the method
      */
-    protected Collection<Injector> beginInjectors;
+    protected Collection<BaseInjector> beginInjectors;
 
     /**
      * Injectors to inject at the end of the method
      */
-    protected Collection<Injector> endInjectors;
+    protected Collection<BaseInjector> endInjectors;
 
     /**
      * Loop detector constructor
@@ -62,14 +62,14 @@ public class LoopDetect extends BaseDetector<CtLoop> {
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<Injector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<Injector>();
-        beforeInjectors = injectors.containsKey(BEFORE_KEY) ? injectors.get(BEFORE_KEY) : new ArrayList<Injector>();
-        afterInjectors = injectors.containsKey(AFTER_KEY) ? injectors.get(AFTER_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
+        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
+        beforeInjectors = injectors.containsKey(BEFORE_KEY) ? injectors.get(BEFORE_KEY) : new ArrayList<BaseInjector>();
+        afterInjectors = injectors.containsKey(AFTER_KEY) ? injectors.get(AFTER_KEY) : new ArrayList<BaseInjector>();
     }
 
-    protected void processBeforeAfter(CtLoop e, Collection<Injector> before, Collection<Injector> after) {
+    protected void processBeforeAfter(CtLoop e, Collection<BaseInjector> before, Collection<BaseInjector> after) {
         SourcePosition sp = e.getPosition();
         CompilationUnit cu = sp.getCompilationUnit();
         int index = sp.getSourceStart();
@@ -85,7 +85,7 @@ public class LoopDetect extends BaseDetector<CtLoop> {
         cu.addSourceCodeFragment(new SourceCodeFragment(sp.getSourceEnd() + 1, snippet, 0));
     }
 
-    private void processBeginEnd(CtElement e, Collection<Injector> begin, Collection<Injector> end) {
+    private void processBeginEnd(CtElement e, Collection<BaseInjector> begin, Collection<BaseInjector> end) {
         SourcePosition sp = e.getPosition();
         CompilationUnit cu = sp.getCompilationUnit();
         int index = sp.getSourceStart() + 1;
@@ -114,20 +114,20 @@ public class LoopDetect extends BaseDetector<CtLoop> {
         }
     }
 
-    public void setBeginInjectors(Collection<Injector> beginInjectors) {
+    public void setBeginInjectors(Collection<BaseInjector> beginInjectors) {
         this.beginInjectors = beginInjectors;
     }
 
-    public void setEndInjectors(Collection<Injector> endInjectors) {
+    public void setEndInjectors(Collection<BaseInjector> endInjectors) {
         this.endInjectors = endInjectors;
     }
 
-    public Collection<Injector> getBeginInjectors() {
+    public Collection<BaseInjector> getBeginInjectors() {
 
         return beginInjectors;
     }
 
-    public Collection<Injector> getEndInjectors() {
+    public Collection<BaseInjector> getEndInjectors() {
         return endInjectors;
     }
 

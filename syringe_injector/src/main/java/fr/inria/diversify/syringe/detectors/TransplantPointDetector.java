@@ -1,7 +1,7 @@
 package fr.inria.diversify.syringe.detectors;
 
 import fr.inria.diversify.syringe.CodeFragmentEqualPrinter;
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +23,7 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
     /**
      * Injectors to inject in the beginning of the method
      */
-    Collection<Injector> beginInjectors;
+    Collection<BaseInjector> beginInjectors;
 
     private final JSONArray persistence;
 
@@ -63,8 +63,8 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
     }
 
 

@@ -1,6 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.cu.CompilationUnit;
 import spoon.reflect.cu.SourceCodeFragment;
@@ -19,7 +19,7 @@ public class AssertDetector extends BaseDetector<CtInvocation<?>> {
 
     public static String END_KEY = "@Assert.End@";
 
-    private Collection<Injector> endInjectors;
+    private Collection<BaseInjector> endInjectors;
 
     public AssertDetector() {
         super();
@@ -27,8 +27,8 @@ public class AssertDetector extends BaseDetector<CtInvocation<?>> {
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
     }
 
     @Override

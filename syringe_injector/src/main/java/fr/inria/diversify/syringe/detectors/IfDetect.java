@@ -1,6 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.code.CtIf;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.cu.CompilationUnit;
@@ -28,22 +28,22 @@ public class IfDetect extends BaseDetector<CtIf> {
     /**
      * Injectors to inject in the begining of the method
      */
-    Collection<Injector> beginInjectors;
+    Collection<BaseInjector> beginInjectors;
 
     /**
      * Injectors to inject at the end of the method
      */
-    Collection<Injector> endInjectors;
+    Collection<BaseInjector> endInjectors;
 
     /**
      * Injectors to inject in the begining of the method
      */
-    Collection<Injector> elseBeginInjectors;
+    Collection<BaseInjector> elseBeginInjectors;
 
     /**
      * Injectors to inject at the end of the method
      */
-    Collection<Injector> elseEndInjectors;
+    Collection<BaseInjector> elseEndInjectors;
 
     /**
      * Method detector constructor
@@ -53,16 +53,16 @@ public class IfDetect extends BaseDetector<CtIf> {
      }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<Injector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<Injector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<Injector>();
-        elseBeginInjectors = injectors.containsKey(ELSE_BEGIN_KEY) ? injectors.get(ELSE_BEGIN_KEY) : new ArrayList<Injector>();
-        elseEndInjectors = injectors.containsKey(ELSE_END_KEY) ? injectors.get(ELSE_END_KEY) : new ArrayList<Injector>();
+    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
+        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
+        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
+        elseBeginInjectors = injectors.containsKey(ELSE_BEGIN_KEY) ? injectors.get(ELSE_BEGIN_KEY) : new ArrayList<BaseInjector>();
+        elseEndInjectors = injectors.containsKey(ELSE_END_KEY) ? injectors.get(ELSE_END_KEY) : new ArrayList<BaseInjector>();
     }
 
 
 
-    private void processStatement(CtElement e, Collection<Injector> begin, Collection<Injector> end) {
+    private void processStatement(CtElement e, Collection<BaseInjector> begin, Collection<BaseInjector> end) {
         SourcePosition sp = e.getPosition();
         CompilationUnit cu = sp.getCompilationUnit();
         int index = sp.getSourceStart() + 1;

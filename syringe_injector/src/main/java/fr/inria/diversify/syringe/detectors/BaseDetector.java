@@ -1,38 +1,45 @@
 package fr.inria.diversify.syringe.detectors;
 
 import fr.inria.diversify.syringe.IdMap;
+import fr.inria.diversify.syringe.injectors.BaseInjector;
 import fr.inria.diversify.syringe.injectors.Injector;
 import fr.inria.diversify.syringe.signature.DefaultSignature;
 import fr.inria.diversify.syringe.signature.SignatureGenerator;
 import spoon.processing.AbstractProcessor;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtElement;
 
-import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 
 /**
- * Detects an occurrence of a given element and calls the fr.inria.diversify.syringe.syringe.injectors registered to the detected element to
+ * Detects an occurrence of a given element and calls the fr.inria.diversify.syringe.syringe.deprecatedInjectors registered to the detected element to
  * inject custom code
  *
  * Created by marodrig on 08/12/2014.
  */
 public abstract class BaseDetector<E extends CtElement> extends AbstractProcessor<E> implements Detector<E> {
 
-    private Collection<Injector> injectors;
+    @Deprecated
+    private Collection<BaseInjector> deprecatedInjectors;
+
+    /**
+     * Injectors listening to an event. Ordered by event.
+     */
+    private HashMap<String, Collection<Injector>> injectors;
 
     private IdMap idMap;
+
     private SignatureGenerator signature;
 
     @Override
-    public void setInjectors(Collection<Injector> injectors) {
-        this.injectors = injectors;
+    public void setInjectors(Collection<BaseInjector> injectors) {
+        this.deprecatedInjectors = injectors;
     }
 
     @Override
-    public Collection<Injector> getInjectors() {
-        return injectors;
+    public Collection<BaseInjector> getInjectors() {
+        return deprecatedInjectors;
     }
 
     //Number of elements detected
@@ -40,14 +47,44 @@ public abstract class BaseDetector<E extends CtElement> extends AbstractProcesso
 
     protected DetectionData data;
 
+
     /**
-     * Gets a injection string out of a list of injectors
+     * Add an injector to inject code in a given event
+     * @param eventName
+     * @param injector
+     */
+    public void addInjector(String eventName, Injector injector) {
+        if ( injectors == null ) injectors = new HashMap<>();
+        if ( !injectors.containsKey(eventName) ) injectors.put(eventName, new ArrayList<Injector>());
+        injectors.get(eventName).add(injector);
+    }
+
+    /**
+     * Removes an injector
+     * @param injector
+     */
+    public void removeInjector(Injector injector) {
+        if ( injectors == null ) return;
+        for ( Collection<Injector> c : injectors.values() ) {
+            if ( c.contains(injector) ) c.remove(injector);
+        }
+    }
+
+    @Override
+    public void notify(String eventName, CtElement detection, DetectionData data) {
+        for ( Injector injector : injectors.get(eventName) ) {
+            injector.inject(detection, data);
+        }
+    }
+
+    /**
+     * Gets a injection string out of a list of deprecatedInjectors
      * @param injectors Injectors composing the string
      * @return A string composed of all injections
      */
-    protected String getSnippet(Collection<Injector> injectors, CtElement e, DetectionData data) {
+    protected String getSnippet(Collection<BaseInjector> injectors, CtElement e, DetectionData data) {
         StringBuilder sb = new StringBuilder();
-        for ( Injector i : injectors ) {
+        for ( BaseInjector i : injectors ) {
             sb.append(i.injection(e, data));
         }
         return sb.toString();
@@ -92,7 +129,7 @@ public abstract class BaseDetector<E extends CtElement> extends AbstractProcesso
      * @return int: The number of elements detected by this detector
      */
     @Override
-    public int getElementsDetected() {
+    public int getElementsDetectedCount() {
         return elementsDetected;
     }
 
