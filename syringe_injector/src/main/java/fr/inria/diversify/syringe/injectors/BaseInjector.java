@@ -6,6 +6,7 @@ import fr.inria.diversify.syringe.detectors.DetectionData;
 /**
  * Created by marodrig on 08/12/2014.
  */
+@Deprecated
 public abstract class BaseInjector extends AbstractInjector {
 
     @Deprecated
