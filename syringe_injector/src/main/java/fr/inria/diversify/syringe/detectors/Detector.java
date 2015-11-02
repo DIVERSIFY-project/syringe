@@ -9,7 +9,6 @@ import spoon.reflect.declaration.CtElement;
 
 import java.util.AbstractMap;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by marodrig on 31/10/2015.
@@ -49,6 +48,15 @@ public interface Detector<E extends CtElement> extends Processor<E> {
      */
     public void notify(String eventName, CtElement detection, DetectionData data);
 
+    /**
+     * The Id map allows the detectors to give an id to elements detected so they
+     * can uniquely identify them
+     *
+     * @param idMap
+     */
+    void setIdMap(IdMap idMap);
+
+    /*
     @Deprecated
     void setInjectors(Collection<BaseInjector> injectors);
 
@@ -69,4 +77,5 @@ public interface Detector<E extends CtElement> extends Processor<E> {
 
     @Deprecated
     SignatureGenerator getSignature();
+    */
 }

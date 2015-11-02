@@ -2,7 +2,9 @@ package fr.inria.diversify.syringe;
 
 import fr.inria.diversify.buildSystem.maven.MavenBuilder;
 import fr.inria.diversify.buildSystem.maven.MavenDependencyResolver;
+import fr.inria.diversify.syringe.detectors.BaseDetector;
 import fr.inria.diversify.syringe.detectors.Detector;
+import fr.inria.diversify.syringe.injectors.Injector;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import spoon.compiler.Environment;
@@ -76,7 +78,6 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
      */
     @Override
     public void instrument(Configuration configuration) throws Exception {
-
         //Copy the logger files given in the configuration
         for (Configuration.LoggerPath p : configuration.getLoggerClassFiles()) {
             p.copyTo(getOutputDir());
@@ -123,7 +124,13 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         for (Detector d : configuration.getDetectors()) {
             d.setIdMap(idMap);
             //Collect relevant injectors to the events this detector will detect
-            d.collectInjectors(configuration.getInjectors());
+            for (Map.Entry<String, Collection<Injector>> e :
+                    configuration.getInjectors().entrySet()) {
+                for (Injector injector : e.getValue()) {
+                    d.addInjector(e.getKey(), injector);
+                }
+            }
+
             //Detect and inject
             applyProcessor(factory, d);
 
@@ -218,6 +225,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
             throw new RuntimeException("The instrumented source failed to pass all tests");
         }
     }
+
     @Override
     public void runTests(boolean verbose) throws Exception {
         runTests(verbose, new String[]{"clean", "test"});
