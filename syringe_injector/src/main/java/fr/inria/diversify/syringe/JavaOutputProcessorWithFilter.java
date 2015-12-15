@@ -178,6 +178,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
         } finally {
             if (stream != null)
                 stream.close();
+            printer.reset();
         }
 
     }

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>syringe</artifactId>
         <groupId>fr.inria.diversify</groupId>
-        <version>0.2</version>
+        <version>1.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

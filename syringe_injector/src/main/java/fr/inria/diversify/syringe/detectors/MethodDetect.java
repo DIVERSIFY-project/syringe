@@ -1,6 +1,5 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
@@ -10,52 +9,22 @@ import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtConstructor;
 import spoon.reflect.declaration.CtExecutable;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * Detect the begin of a method
+ * Detect the first and last statement of a method (including constructors)
  *
  * Created by marodrig on 08/12/2014.
  */
-public class MethodDetect extends BaseDetector<CtExecutable> {
+public class MethodDetect extends AbstractDetector<CtExecutable> {
 
     public static String BEGIN_KEY = "@Method.Begin@";
     public static String END_KEY = "@Method.End@";
 
-    /**
-     * Injectors to inject in the begining of the method
-     */
-    Collection<BaseInjector> beginInjectors;
-
-    /**
-     * Injectors to inject at the end of the method
-     */
-    Collection<BaseInjector> endInjectors;
-
-
-
-    /**
-     * Method detector constructor
-     */
-    public MethodDetect() {
-        data = new DetectionData();
-     }
-
-    public static String getEventName() {
-        return BEGIN_KEY;
-    }
-
-    /**
-     * Paired detection of begin end of the method
-     * @return
-     */
-
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
+    public Collection<String> eventsSupported() {
+        return Arrays.asList(BEGIN_KEY, END_KEY);
     }
 
     @Override
@@ -73,10 +42,10 @@ public class MethodDetect extends BaseDetector<CtExecutable> {
         //Set id of the element to the id map
         elementsDetected++;
         //putSignatureIntoData(executable.getDeclaringType().getQualifiedName() + "." + executable.getSimpleName());
-        putSignatureIntoData(getSignatureFromElement(executable));
+        //putSignatureIntoData(getSignatureFromElement(executable));
 
         //Begin snippet
-        String snippet = "\ttry{\n\t" + getSnippet(beginInjectors, executable, data) + System.lineSeparator();
+        String snippet = "";//"\ttry{\n\t" + getSnippet(beginInjectors, executable, data) + System.lineSeparator();
 
         SourcePosition sp = stmt.getPosition();
         CompilationUnit compileUnit = sp.getCompilationUnit();
@@ -93,7 +62,13 @@ public class MethodDetect extends BaseDetector<CtExecutable> {
         compileUnit = sp.getCompilationUnit();
 
         //End snippet:
-        snippet = "\n\t} finally {" + getSnippet(endInjectors, executable, data) + " }";
+        //snippet = "\n\t} finally {" + getSnippet(endInjectors, executable, data) + " }";
         compileUnit.addSourceCodeFragment(new SourceCodeFragment(sp.getSourceEnd()+2 ,snippet , 0));
+    }
+
+
+    @Override
+    public int getElementsDetectedCount() {
+        return elementsDetected;
     }
 }

@@ -1,7 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
 import fr.inria.diversify.syringe.CodeFragmentEqualPrinter;
-import fr.inria.diversify.syringe.injectors.BaseInjector;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,14 +15,9 @@ import java.util.*;
 /**
  * Created by marodrig on 17/12/2014.
  */
-public class TransplantPointDetector extends BaseDetector<CtStatement> {
+public class TransplantPointDetector extends AbstractDetector<CtStatement> {
 
     public static String BEGIN_KEY = "@TP.Begin@";
-
-    /**
-     * Injectors to inject in the beginning of the method
-     */
-    Collection<BaseInjector> beginInjectors;
 
     private final JSONArray persistence;
 
@@ -41,7 +35,6 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
         this.persistence = persistence;
         statements = new ArrayList<>();
         this.lineTolerance = lineTolerance;
-        data = new DetectionData();
 
     }
 
@@ -62,10 +55,6 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
         return exactLocationInfo;
     }
 
-    @Override
-    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
-    }
 
 
     public boolean isTP(CtStatement element) {
@@ -111,9 +100,12 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
     }
 
     private String detectSnippet( CtElement statement ) {
+        /*
         elementsDetected++;
         putSignatureIntoData(getSignatureFromElement(statement));
         return getSnippet(beginInjectors, statement, data);
+        */
+        return null;
     }
 
 
@@ -121,7 +113,7 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
     public void process(CtStatement statement) {
 
         CtElement e = statement;
-        data.setEndWithSemiColon(true);
+        //data.setEndWithSemiColon(true);
 
         boolean stop = false;
         while (stop == false) {
@@ -142,7 +134,7 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
                         int b = cu.beginOfLineIndex(e.getPosition().getSourceStart());
                         cu.addSourceCodeFragment(new SourceCodeFragment(b, probeStr + ";", 0));
                     } else if (e instanceof CtIf) {
-                        data.setEndWithSemiColon(false);
+                        //data.setEndWithSemiColon(false);
                         CtExpression c = ((CtIf) e).getCondition();
                         String probeStr = detectSnippet(e);
                         cu.addSourceCodeFragment(new SourceCodeFragment(
@@ -158,4 +150,8 @@ public class TransplantPointDetector extends BaseDetector<CtStatement> {
         }
     }
 
+    @Override
+    public Collection<String> eventsSupported() {
+        return Arrays.asList(BEGIN_KEY);
+    }
 }

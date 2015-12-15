@@ -1,13 +1,10 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.BaseInjector;
+import fr.inria.diversify.syringe.events.DetectionEvent;
+import fr.inria.diversify.syringe.events.StatementDetectionEvent;
 import spoon.reflect.code.CtInvocation;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourceCodeFragment;
-import spoon.reflect.cu.SourcePosition;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -15,21 +12,9 @@ import java.util.Collection;
  *
  * Created by marodrig on 22/12/2014.
  */
-public class AssertDetector extends BaseDetector<CtInvocation<?>> {
+public class AssertDetector extends AbstractDetector<CtInvocation<?>> {
 
-    public static String END_KEY = "@Assert.End@";
-
-    private Collection<BaseInjector> endInjectors;
-
-    public AssertDetector() {
-        super();
-        data = new DetectionData();
-    }
-
-    @Override
-    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
-    }
+    public static String ASSERT_DETECTED = "@ASSERT_DETECTED@";
 
     @Override
     public boolean isToBeProcessed(CtInvocation<?> candidate) {
@@ -41,15 +26,20 @@ public class AssertDetector extends BaseDetector<CtInvocation<?>> {
     }
 
     public void process(CtInvocation<?> invocation) {
-        SourcePosition sp = invocation.getPosition();
-        CompilationUnit compileUnit = sp.getCompilationUnit();
-        String snippet = "";
-
-        //Set id of the element to the id map
+        DetectionEvent event = putSignatureIntoEvent(new StatementDetectionEvent(invocation), invocation);
+        notify(ASSERT_DETECTED, event);
         elementsDetected++;
-        putSignatureIntoData(getSignatureFromElement(invocation));
-        snippet += getSnippet(endInjectors, invocation, data)+";";
-
-        compileUnit.addSourceCodeFragment(new SourceCodeFragment(sp.getSourceEnd() + 2,snippet, 0));
     }
+
+    @Override
+    public Collection<String> eventsSupported() {
+        return Arrays.asList(ASSERT_DETECTED);
+    }
+
+    @Override
+    public int getElementsDetectedCount() {
+        return elementsDetected;
+    }
+
+
 }

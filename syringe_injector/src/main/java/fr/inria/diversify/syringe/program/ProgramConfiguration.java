@@ -10,7 +10,7 @@ import java.util.List;
 
  - source: src/main/java
  detect: [method, loop, ifs]
- inject:
+ listen:
  at method : .method() with_iD
  at loop:    .loop()   with_iD
  at if:      .if()     with_iD
@@ -18,7 +18,7 @@ import java.util.List;
 
  - source: src/test/java
  detect: [test, assertions]
- inject:
+ listen:
  at method : .method() with_iD
  at loop:    .loop()   with_iD
  at if:      .if()     with_iD

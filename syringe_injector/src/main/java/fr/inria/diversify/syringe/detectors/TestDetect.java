@@ -1,13 +1,8 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.BaseInjector;
 import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.reference.CtTypeReference;
-
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Detect the begin of a method
@@ -53,10 +48,5 @@ public class TestDetect extends MethodDetect {
         return false;
     }
 
-    @Override
-    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
-    }
 
 }

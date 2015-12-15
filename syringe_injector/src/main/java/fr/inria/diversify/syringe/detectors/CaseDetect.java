@@ -1,81 +1,40 @@
 package fr.inria.diversify.syringe.detectors;
 
-import fr.inria.diversify.syringe.injectors.BaseInjector;
+import fr.inria.diversify.syringe.events.BlockEvent;
 import spoon.reflect.code.CtCase;
+import spoon.reflect.code.CtReturn;
 import spoon.reflect.code.CtStatement;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourceCodeFragment;
-import spoon.reflect.cu.SourcePosition;
-import spoon.support.reflect.code.CtLocalVariableImpl;
+import spoon.reflect.visitor.filter.TypeFilter;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Detect the begin of a method
  * <p>
  * Created by marodrig on 08/12/2014.
  */
-public class CaseDetect extends BaseDetector<CtCase> {
+public class CaseDetect extends AbstractDetector<CtCase> {
 
-    public static String BEGIN_KEY = "@Case.Begin@";
-
-    public static String END_KEY = "@Case.End@";
-
-    /**
-     * Injectors to inject in the begining of the method
-     */
-    Collection<BaseInjector> beginInjectors;
-
-    /**
-     * Injectors to inject at the end of the method
-     */
-    Collection<BaseInjector> endInjectors;
-
-    /**
-     * Method detector constructor
-     */
-    public CaseDetect() {
-        data = new DetectionData();
-    }
-
-    @Override
-    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
-        beginInjectors = injectors.containsKey(BEGIN_KEY) ? injectors.get(BEGIN_KEY) : new ArrayList<BaseInjector>();
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
-    }
-
-    private void processStatement(List<CtStatement> es, Collection<BaseInjector> begin, Collection<BaseInjector> end) {
-        SourcePosition sp = es.get(0).getPosition();
-        CompilationUnit cu = sp.getCompilationUnit();
-        int index = sp.getSourceStart();
-
-        if ( es.get(0) instanceof CtLocalVariableImpl) {
-            CtLocalVariableImpl l = (CtLocalVariableImpl)es.get(0);
-            index = l.getPosition().getCompilationUnit().beginOfLineIndex(l.getDefaultExpression().getPosition().getSourceStart());
-        }
-
-        //Set id of the element to the id map
-        elementsDetected++;
-        putSignatureIntoData(getSignatureFromElement(es.get(0)));
-
-        //Begin snippet
-        String snippet = " try{" + getSnippet(begin, es.get(0), data);
-        cu.addSourceCodeFragment(new SourceCodeFragment(index, snippet, 0));
-
-        //TODO have into consideration if is not a break statement it may need a semicolon
-
-        sp = es.get(es.size()-1).getPosition();
-        snippet = "} finally {" + getSnippet(end, es.get(es.size()-1), data) + " }";
-        cu.addSourceCodeFragment(new SourceCodeFragment(sp.getSourceEnd() + 1, snippet, 0));
-    }
+    public static String CASE_DETECTED = "@Case.Detected@";
 
     @Override
     public void process(CtCase element) {
+        BlockEvent event = new BlockEvent();
         if ( element.getStatements().size() > 0 ) {
-            processStatement(element.getStatements(), beginInjectors, endInjectors);
+            event.setFirstStatement((CtStatement) element.getStatements().get(0));
+            event.setLastStatement((CtStatement) element.getStatements().get(element.getStatements().size() - 1));
         }
+        event.setReturnStatements(element.getElements(new TypeFilter<CtReturn>(CtReturn.class)));
+        event.setDetected(element);
+        putSignatureIntoEvent(event, element);
+        elementsDetected++;
+        notify(CASE_DETECTED, event);
     }
+
+    @Override
+    public Collection<String> eventsSupported() {
+        return Arrays.asList(CASE_DETECTED);
+    }
+
+
 }

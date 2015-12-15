@@ -2,16 +2,15 @@ package fr.inria.diversify.syringe;
 
 import fr.inria.diversify.buildSystem.maven.MavenBuilder;
 import fr.inria.diversify.buildSystem.maven.MavenDependencyResolver;
-import fr.inria.diversify.syringe.detectors.BaseDetector;
 import fr.inria.diversify.syringe.detectors.Detector;
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.events.DetectionListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import spoon.compiler.Environment;
 import spoon.processing.ProcessingManager;
 import spoon.processing.Processor;
 import spoon.reflect.factory.Factory;
-import spoon.reflect.visitor.FragmentDrivenJavaPrettyPrinter;
+import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.support.QueueProcessingManager;
 
 import java.io.*;
@@ -73,6 +72,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         idMap = new IdMap();
     }
 
+
     /**
      * Instrument the code and stores a local copy of it
      */
@@ -124,14 +124,14 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         for (Detector d : configuration.getDetectors()) {
             d.setIdMap(idMap);
             //Collect relevant injectors to the events this detector will detect
-            for (Map.Entry<String, Collection<Injector>> e :
+            for (Map.Entry<String, Collection<DetectionListener>> e :
                     configuration.getInjectors().entrySet()) {
-                for (Injector injector : e.getValue()) {
-                    d.addInjector(e.getKey(), injector);
+                for (DetectionListener eventListener : e.getValue()) {
+                    d.addListener(e.getKey(), eventListener);
                 }
             }
 
-            //Detect and inject
+            //Detect and listen
             applyProcessor(factory, d);
 
             fragmentsInserted += d.getElementsDetectedCount();
@@ -145,7 +145,8 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
             env.useSourceCodeFragments(true);
             applyProcessor(factory,
                     new JavaOutputProcessorWithFilter(new File(getOutputDir() + configuration.getSourceDir()),
-                            new FragmentDrivenJavaPrettyPrinter(env),
+                            //new FragmentDrivenJavaPrettyPrinter(env),
+                            new DefaultJavaPrettyPrinter(env),
                             allClassesName(new File(projectDir + configuration.getSourceDir()))));
         } else {
             logger.info("No fragments inserted. Skipping printing of modified sources: nothing to print");

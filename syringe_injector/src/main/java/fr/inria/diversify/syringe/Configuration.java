@@ -1,8 +1,7 @@
 package fr.inria.diversify.syringe;
 
 import fr.inria.diversify.syringe.detectors.Detector;
-import fr.inria.diversify.syringe.injectors.BaseInjector;
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.events.DetectionListener;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -53,7 +52,7 @@ public class Configuration {
     private Collection<Detector> detectors;
 
     //All injectors in the instrumentation process, binded to an specific location event
-    private AbstractMap<String, Collection<Injector>> injectors;
+    private AbstractMap<String, Collection<DetectionListener>> injectors;
 
     // Folder where the instrumented code is going to be stored.
     private String sourceDir;
@@ -102,17 +101,17 @@ public class Configuration {
     }
 
     /**
-     * Adds a new injector to inject when an location event is found
+     * Adds a new injector to listen when an location event is found
      *
-     * @param eventName Location event to inject (e.g. method begin, method end, test begin..
-     * @param injector  Injector to inject
+     * @param eventName Location event to listen (e.g. method begin, method end, test begin..
+     * @param eventListener  Injector to listen
      */
-    public void addInjector(String eventName, Injector injector) {
+    public void addInjector(String eventName, DetectionListener eventListener) {
         if (getInjectors().containsKey(eventName)) {
-            getInjectors().get(eventName).add(injector);
+            getInjectors().get(eventName).add(eventListener);
         } else {
-            Collection<Injector> injs = new ArrayList<>();
-            injs.add(injector);
+            Collection<DetectionListener> injs = new ArrayList<>();
+            injs.add(eventListener);
             getInjectors().put(eventName, injs);
         }
     }
@@ -131,7 +130,7 @@ public class Configuration {
      *
      * @return
      */
-    public AbstractMap<String, Collection<Injector>> getInjectors() {
+    public AbstractMap<String, Collection<DetectionListener>> getInjectors() {
         if (injectors == null) injectors = new HashMap<>();
         return injectors;
     }

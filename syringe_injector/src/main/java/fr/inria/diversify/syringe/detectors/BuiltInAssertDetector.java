@@ -6,29 +6,18 @@ package fr.inria.diversify.syringe.detectors;
  * Created by marodrig on 22/12/2014.
  */
 
-import fr.inria.diversify.syringe.injectors.BaseInjector;
+import fr.inria.diversify.syringe.events.DetectionEvent;
+import fr.inria.diversify.syringe.events.StatementDetectionEvent;
 import spoon.reflect.code.CtAssert;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourceCodeFragment;
-import spoon.reflect.cu.SourcePosition;
-
-import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
  * A detector for built asserts
  */
-public class BuiltInAssertDetector extends BaseDetector<CtAssert<?>> {
+public class BuiltInAssertDetector extends AbstractDetector<CtAssert<?>> {
 
-    public static String END_KEY = "@Built.In.Assert.End@";
-
-    private Collection<BaseInjector> endInjectors;
-
-    public BuiltInAssertDetector() {
-        super();
-        data = new DetectionData();
-    }
+    public static String ASSERT_DETECTED = "@Built.In.Assert.End@";
 
     @Override
     public boolean isToBeProcessed(CtAssert<?> candidate) {
@@ -37,20 +26,15 @@ public class BuiltInAssertDetector extends BaseDetector<CtAssert<?>> {
 
     @Override
     public void process(CtAssert ctAssert) {
-        SourcePosition sp = ctAssert.getPosition();
-        CompilationUnit compileUnit = sp.getCompilationUnit();
-        String snippet = "";
-
-        //Set id of the element to the id map
+        DetectionEvent event = putSignatureIntoEvent(new StatementDetectionEvent(ctAssert), ctAssert);
+        notify(ASSERT_DETECTED, event);
         elementsDetected++;
-        putSignatureIntoData(getSignatureFromElement(ctAssert));
-        snippet += getSnippet(endInjectors, ctAssert, data)+";";
-
-        compileUnit.addSourceCodeFragment(new SourceCodeFragment(sp.getSourceEnd() + 2,snippet, 0));
     }
 
     @Override
-    public void collectInjectors(AbstractMap<String, Collection<BaseInjector>> injectors) {
-        endInjectors = injectors.containsKey(END_KEY) ? injectors.get(END_KEY) : new ArrayList<BaseInjector>();
+    public Collection<String> eventsSupported() {
+        return Arrays.asList(ASSERT_DETECTED);
     }
+
+
 }

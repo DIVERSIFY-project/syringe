@@ -48,17 +48,6 @@ public class TransplantPointBranchDetector extends TransplantPointDetector {
         return result;
     }
 
-    @Override
-    protected String getSignatureFromElement(CtElement e) {
-        if ((branchParent instanceof CtClass) || branchParent == null) {
-            orphanTransplantPointsDetected++;
-            return super.getSignatureFromElement(e); //"Branch independent" Sosie
-        } else if (branchParent instanceof CtCase) { //Make our signature, our parent's
-            return super.getSignatureFromElement((CtStatement) ((CtCase) branchParent).getStatements().get(0));
-        } else { //Make our signature, our parent's
-            return super.getSignatureFromElement(branchParent);
-        }
-    }
 
     @Override
     public void process(CtStatement statement) {
@@ -73,7 +62,7 @@ public class TransplantPointBranchDetector extends TransplantPointDetector {
             else if (branchParent instanceof CtLoop)
                 branchParent = ((CtLoop) branchParent).getBody();
 
-            putSignatureIntoData(getSignatureFromElement(branchParent));
+            //putSignatureIntoData(getSignatureFromElement(branchParent));
 
         }
         super.process(statement);

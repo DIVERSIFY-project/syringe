@@ -1,14 +1,12 @@
 package fr.inria.diversify.syringe.detectors;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import fr.inria.diversify.syringe.IdMap;
-import fr.inria.diversify.syringe.injectors.BaseInjector;
-import fr.inria.diversify.syringe.injectors.Injector;
+import fr.inria.diversify.syringe.events.DetectionEvent;
+import fr.inria.diversify.syringe.events.DetectionListener;
 import fr.inria.diversify.syringe.signature.SignatureGenerator;
 import spoon.processing.Processor;
 import spoon.reflect.declaration.CtElement;
-
-import java.util.AbstractMap;
-import java.util.Collection;
 
 /**
  * Created by marodrig on 31/10/2015.
@@ -28,33 +26,51 @@ public interface Detector<E extends CtElement> extends Processor<E> {
     //List<CtElement> getElementsDetected();
 
     /**
-     * Add an injector to inject code in a given event
+     * Add an injector to listen code in a given event
      * @param eventName
-     * @param injector
+     * @param eventListener
      */
-    public void addInjector(String eventName, Injector injector);
+    void addListener(String eventName, DetectionListener eventListener) throws InvalidArgumentException;
 
     /**
      * Removes an injector
-     * @param injector
+     * @param eventListener
      */
-    public void removeInjector(Injector injector);
+    void removeListener(DetectionListener eventListener);
 
     /**
      * Notify the injectors listening to a message of a detection
      * @param eventName Message being listening
-     * @param detection Element detected
      * @param data MetaData of the detection
      */
-    public void notify(String eventName, CtElement detection, DetectionData data);
+    void notify(String eventName, DetectionEvent data);
 
     /**
-     * The Id map allows the detectors to give an id to elements detected so they
-     * can uniquely identify them
+     * Number of listener listening to a particular event.
+     * @param eventName
+     * @return
+     */
+    int listenerCount(String eventName);
+
+    /**
+     * The Id map allows the detectors to provide detected elements with an ID
+     * so they can uniquely identify them
      *
      * @param idMap
      */
     void setIdMap(IdMap idMap);
+
+    /**
+     * Sets the signature generator for this detector
+     * @param signature
+     */
+    void setSignature(SignatureGenerator signature);
+
+    /**
+     * Gets the signature generator from this detector
+     * @return
+     */
+    SignatureGenerator getSignature();
 
     /*
     @Deprecated
