@@ -48,15 +48,10 @@ public class IfDetector extends AbstractDetector<CtIf> {
 
     @Override
     public void process(CtIf element) {
-
-        if (listenerCount(IF_DETECTED) > 0) {
-            DetectionEvent event = putSignatureIntoEvent(new StatementDetectionEvent(element), element);
-            notify(IF_DETECTED, event);
-            elementsDetected++;
-        }
-
+        int statementListeners = notifyStatementDetection(element, IF_DETECTED);
         notifyBlock(element.getThenStatement(), IF_BODY);
         notifyBlock(element.getElseStatement(), ELSE_BODY);
+        if ( statementListeners == 0 ) elementsDetected++;
     }
 
     @Override

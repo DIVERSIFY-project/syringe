@@ -4,9 +4,11 @@ import com.sun.javaws.exceptions.InvalidArgumentException;
 import fr.inria.diversify.syringe.IdMap;
 import fr.inria.diversify.syringe.events.DetectionEvent;
 import fr.inria.diversify.syringe.events.DetectionListener;
+import fr.inria.diversify.syringe.events.StatementDetectionEvent;
 import fr.inria.diversify.syringe.signature.DefaultSignature;
 import fr.inria.diversify.syringe.signature.SignatureGenerator;
 import spoon.processing.AbstractProcessor;
+import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.CtElement;
 
 import java.util.ArrayList;
@@ -121,6 +123,21 @@ public abstract class AbstractDetector<E extends CtElement> extends AbstractProc
     }
 
 
+    /**
+     * Performs the detection of the whole statement
+     * @param statement
+     * @param eventName
+     * @return the number of listeners notified
+     */
+    protected int notifyStatementDetection(CtStatement statement, String eventName) {
+        int c = listenerCount(eventName);
+        if ( c > 0) {
+            DetectionEvent event = putSignatureIntoEvent(new StatementDetectionEvent(statement), statement);
+            notify(eventName, event);
+            elementsDetected++;
+        }
+        return c;
+    }
 
     public int getElementsDetected() {
         return elementsDetected;

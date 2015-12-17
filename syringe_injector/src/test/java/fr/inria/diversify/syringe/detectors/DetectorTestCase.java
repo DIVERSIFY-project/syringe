@@ -1,5 +1,6 @@
 package fr.inria.diversify.syringe.detectors;
 
+import fr.inria.diversify.syringe.ProcessingTest;
 import fr.inria.diversify.syringe.SpoonMetaFactory;
 import fr.inria.diversify.syringe.events.BlockEvent;
 import fr.inria.diversify.syringe.events.DetectionEvent;
@@ -16,14 +17,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by marodrig on 15/12/2015.
  */
-public class DetectorTestCase {
-    public void process(Detector e, String folder) throws Exception {
-        Factory factory = new SpoonMetaFactory().buildNewFactory(folder, 5);
-        ProcessingManager pm = new QueueProcessingManager(factory);
-        pm.addProcessor(e);
-        pm.process();
-    }
-
+public class DetectorTestCase extends ProcessingTest {
     public void defaultBlockAssertions(DetectionEvent data, Class klass) {
         assertTrue(data instanceof BlockEvent);
         BlockEvent blockEvent = (BlockEvent) data;
@@ -34,5 +28,4 @@ public class DetectorTestCase {
         assertTrue(klass.isAssignableFrom(data.getDetected().getClass()));
         assertTrue(data.getSignature().contains("ControlFlowArithmetic"));
     }
-
 }

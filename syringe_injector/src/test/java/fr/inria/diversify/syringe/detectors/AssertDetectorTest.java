@@ -24,12 +24,10 @@ public class AssertDetectorTest extends DetectorTestCase implements DetectionLis
     public void testProcess() throws Exception {
         AssertDetector d = new AssertDetector();
         d.addListener(AssertDetector.ASSERT_DETECTED, this);
-
         String folder = this.getClass().getResource("/control").toURI().getPath();
         process(d, folder);
         assertEquals(eventLaunched, d.getElementsDetectedCount());
         assertEquals(2, eventLaunched);
-
     }
 
     @Override

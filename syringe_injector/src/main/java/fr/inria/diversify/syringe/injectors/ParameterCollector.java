@@ -9,8 +9,8 @@ import java.util.HashMap;
  *
  * Created by marodrig on 15/12/2015.
  */
-public abstract class ParameterCollector {
+public abstract class ParameterCollector<E extends CtElement> {
 
-    public abstract HashMap<String, Object> collectParameters(CtElement element);
+    public abstract HashMap<String, Object> collectParameters(E element);
 
 }
