@@ -4,7 +4,8 @@ import spoon.compiler.Environment;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtLocalVariable;
 import spoon.reflect.code.CtVariableAccess;
-import spoon.reflect.declaration.CtSimpleType;
+
+import spoon.reflect.declaration.CtType;
 import spoon.reflect.reference.CtFieldReference;
 import spoon.reflect.reference.CtLocalVariableReference;
 import spoon.reflect.reference.CtTypeReference;
@@ -116,7 +117,7 @@ public class CodeFragmentEqualPrinter extends DefaultJavaPrettyPrinter {
 
 		Stack<CtTypeReference<?>> currentThis = new Stack<>();
 
-		CtSimpleType<?> currentTopLevel;
+		CtType<?> currentTopLevel;
 
 		boolean ignoreGenerics = false;
 

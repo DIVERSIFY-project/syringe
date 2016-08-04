@@ -1,20 +1,21 @@
 package fr.inria.diversify.syringe.detectors;
 
+import fr.inria.diversify.syringe.events.BlockEvent;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourceCodeFragment;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtConstructor;
 import spoon.reflect.declaration.CtExecutable;
+import spoon.support.reflect.code.CtCodeSnippetStatementImpl;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 /**
  * Detect the first and last statement of a method (including constructors)
- *
+ * <p/>
  * Created by marodrig on 08/12/2014.
  */
 public class MethodDetect extends AbstractDetector<CtExecutable> {
@@ -29,41 +30,15 @@ public class MethodDetect extends AbstractDetector<CtExecutable> {
 
     @Override
     public void process(CtExecutable executable) {
-        CtBlock body = executable.getBody();
-        if ( body == null ) return;
-        int bodySize = body.getStatements().size();
-        if ( bodySize == 0 || (executable instanceof CtConstructor && bodySize <= 1) ) return;
-        CtStatement stmt;
-        if ( executable instanceof CtConstructor && body.getStatement(0) instanceof CtInvocation) {
-            stmt = body.getStatement(1);
-        } else stmt = body.getStatement(0);
-        if ( stmt == null ) return;
-
-        //Set id of the element to the id map
-        elementsDetected++;
-        //putSignatureIntoData(executable.getDeclaringType().getQualifiedName() + "." + executable.getSimpleName());
-        //putSignatureIntoData(getSignatureFromElement(executable));
-
-        //Begin snippet
-        String snippet = "";//"\ttry{\n\t" + getSnippet(beginInjectors, executable, data) + System.lineSeparator();
-
-        SourcePosition sp = stmt.getPosition();
-        CompilationUnit compileUnit = sp.getCompilationUnit();
-
-        int index;
-        if(stmt.getPosition().getLine() == executable.getPosition().getLine()) {
-            index = sp.getSourceStart();
-        } else {
-            index = compileUnit.beginOfLineIndex(sp.getSourceStart());
+        int bCount = listenerCount(BEGIN_KEY);
+        int eCount = listenerCount(END_KEY);
+        if (bCount > 0 || eCount > 0) {
+            BlockEvent event = new BlockEvent(executable, executable.getBody());
+            putSignatureIntoEvent(event, executable);
+            if (bCount > 0) notify(BEGIN_KEY, event);
+            if (eCount > 0) notify(END_KEY, event);
+            elementsDetected++;
         }
-        compileUnit.addSourceCodeFragment(new SourceCodeFragment(index, snippet, 0));
-
-        sp = body.getLastStatement().getPosition();
-        compileUnit = sp.getCompilationUnit();
-
-        //End snippet:
-        //snippet = "\n\t} finally {" + getSnippet(endInjectors, executable, data) + " }";
-        compileUnit.addSourceCodeFragment(new SourceCodeFragment(sp.getSourceEnd()+2 ,snippet , 0));
     }
 
 
@@ -71,4 +46,15 @@ public class MethodDetect extends AbstractDetector<CtExecutable> {
     public int getElementsDetectedCount() {
         return elementsDetected;
     }
+
+
+        /*
+        if(stmt.getPosition().getLine() == executable.getPosition().getLine()) {
+            index = sp.getSourceStart();
+        } else {
+            index = compileUnit.beginOfLineIndex(sp.getSourceStart());
+        }
+        compileUnit.add addSourceCodeFragment(new SourceCodeFragment(index, snippet, 0));
+*/
+
 }

@@ -2,7 +2,6 @@ package fr.inria.diversify.syringe;
 
 //import fr.inria.diversify.util.Log;
 import spoon.compiler.SpoonCompiler;
-import spoon.compiler.SpoonResource;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.factory.FactoryImpl;
 import spoon.support.DefaultCoreFactory;
@@ -10,13 +9,13 @@ import spoon.support.StandardEnvironment;
 import spoon.support.compiler.jdt.JDTBasedSpoonCompiler;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
 /**
  * Created by marodrig on 16/06/2014.
  */
+@Deprecated
 public class SpoonMetaFactory {
 
     public Factory buildNewFactory(String srcDirectory, int javaVersion) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
@@ -33,21 +32,19 @@ public class SpoonMetaFactory {
         env.setComplianceLevel(javaVersion);
         env.setVerbose(true);
         env.setDebug(true);
+        //env.useSourceCodeFragments(true);
 
         DefaultCoreFactory f = new DefaultCoreFactory();
         Factory factory = new FactoryImpl(f, env);
         SpoonCompiler compiler = new JDTBasedSpoonCompiler(factory);
 
+
         for (String s : srcDirectory) {
             for (String dir : s.split(System.getProperty("path.separator"))) {
-                try {
-                    //Log.debug("add {} to classpath", dir);
-                    File dirFile = new File(dir);
-                    if (dirFile.isDirectory()) {
-                        compiler.addInputSource(dirFile);
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                //Log.debug("add {} to classpath", dir);
+                File dirFile = new File(dir);
+                if (dirFile.isDirectory()) {
+                    compiler.addInputSource(dirFile);
                 }
             }
         }

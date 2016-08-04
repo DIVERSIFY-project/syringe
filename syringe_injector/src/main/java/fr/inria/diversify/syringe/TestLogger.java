@@ -20,4 +20,6 @@ public class TestLogger {
     public static void testWithId(int id) {
         totalCount++;
     }
+
+
 }

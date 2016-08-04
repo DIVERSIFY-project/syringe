@@ -6,6 +6,7 @@ import fr.inria.diversify.syringe.detectors.CaseDetect;
 import org.junit.Test;
 import spoon.reflect.code.CtAssert;
 import spoon.reflect.declaration.CtElement;
+import spoon.support.reflect.code.CtInvocationImpl;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -23,15 +24,17 @@ public class GenericInjectorTest extends ProcessingTest {
         GenericInjector injector = new GenericInjector();
         injector.setInjectAt(GenericInjector.InjectionPosition.BEFORE);
         injector.setInjectionTemplate("logAssert(%name%)");
-        injector.setParameterCollector(new ParameterCollector<CtAssert>() {
+        injector.setParameterCollector(new ParameterCollector() {
             @Override
-            public HashMap<String, Object> collectParameters(CtAssert element) {
+            public HashMap<String, Object> collectParameters(CtElement element) {
+                CtInvocationImpl inv = (CtInvocationImpl)element;
                 HashMap<String, Object> params = new HashMap<>();
-                return null;
+                params.put("name", inv.getExecutable().getSimpleName());
+                return params;
             }
         });
 
-        CaseDetect d = new CaseDetect();
+        AssertDetector d = new AssertDetector();
         d.addListener(AssertDetector.ASSERT_DETECTED, injector);
         String folder = this.getClass().getResource("/control").toURI().getPath();
         process(d, folder);

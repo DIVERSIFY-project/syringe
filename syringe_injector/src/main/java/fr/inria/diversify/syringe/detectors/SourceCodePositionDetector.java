@@ -5,17 +5,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import spoon.reflect.code.*;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourceCodeFragment;
-import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 
 import java.util.*;
 
 /**
+ * Detects an element with a given source code position in the form <qualified_name>:<line_number>, for example
+ * my.package.Class:290
+ *
  * Created by marodrig on 17/12/2014.
  */
-public class TransplantPointDetector extends AbstractDetector<CtStatement> {
+@Deprecated
+public class SourceCodePositionDetector extends AbstractDetector<CtStatement> {
 
     public static String BEGIN_KEY = "@TP.Begin@";
 
@@ -31,7 +32,7 @@ public class TransplantPointDetector extends AbstractDetector<CtStatement> {
     //or if the signature has minimum changes like \n for \r\rn
     private HashMap<String, HashSet<String>> exactLocationInfo;
 
-    public TransplantPointDetector(JSONArray persistence, int lineTolerance) {
+    public SourceCodePositionDetector(JSONArray persistence, int lineTolerance) {
         this.persistence = persistence;
         statements = new ArrayList<>();
         this.lineTolerance = lineTolerance;
@@ -114,11 +115,10 @@ public class TransplantPointDetector extends AbstractDetector<CtStatement> {
 
         CtElement e = statement;
         //data.setEndWithSemiColon(true);
-
+/*
         boolean stop = false;
         while (stop == false) {
             try {
-                CompilationUnit cu = e.getPosition().getCompilationUnit();
                 stop = true;
                 if (e != null) {
                     if (e.getParent() instanceof CtClass) {
@@ -147,7 +147,7 @@ public class TransplantPointDetector extends AbstractDetector<CtStatement> {
             } catch (NullPointerException np) {
                 throw new RuntimeException(np);
             }
-        }
+        }*/
     }
 
     @Override

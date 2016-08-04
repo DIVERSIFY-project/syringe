@@ -6,7 +6,7 @@ import spoon.processing.FileGenerator;
 import spoon.processing.TraversalStrategy;
 import spoon.reflect.cu.CompilationUnit;
 import spoon.reflect.declaration.CtPackage;
-import spoon.reflect.declaration.CtSimpleType;
+import spoon.reflect.declaration.CtType;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
@@ -22,8 +22,8 @@ import java.util.ArrayList;import java.util.Collection;import java.util.HashMap;
  * Date: 06/01/14
  * Time: 16:18
  */
-public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleType<?>>
-        implements FileGenerator<CtSimpleType<?>> {
+public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtType<?>>
+        implements FileGenerator<CtType<?>> {
     PrettyPrinter printer;
 
     File directory;
@@ -46,7 +46,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
     }
 
     @Override
-    public boolean isToBeProcessed(CtSimpleType<?> candidate) {
+    public boolean isToBeProcessed(CtType<?> candidate) {
         return classes.contains(candidate.getSimpleName());
     }
 
@@ -78,7 +78,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
         try {
             directory = directory.getCanonicalFile();
         } catch (IOException e) {
-            Launcher.logger.error(e.getMessage(), e);
+            Launcher.LOGGER.error(e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
@@ -90,7 +90,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
      * classes in different files (even if they are in the same file in the
      * original sources).
      */
-    public void createJavaFile(CtSimpleType<?> element) {
+    public void createJavaFile(CtType<?> element) {
 
         getEnvironment().debugMessage(
                 "printing " + element.getQualifiedName() + " to " + directory);
@@ -110,7 +110,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
                 throw new java.lang.IllegalStateException();
             }
         }
-        List<CtSimpleType<?>> toBePrinted = new ArrayList<CtSimpleType<?>>();
+        List<CtType<?>> toBePrinted = new ArrayList<CtType<?>>();
         toBePrinted.add(element);
 
 
@@ -148,7 +148,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
                 stream.println(printer.getPackageDeclaration());
                 stream.close();
             } catch (FileNotFoundException e) {
-                Launcher.logger.error(e.getMessage(), e);
+                Launcher.LOGGER.error(e.getMessage(), e);
             } finally {
                 if (stream != null)
                     stream.close();
@@ -166,15 +166,15 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
             }
             stream = new PrintStream(file);
             stream.print(printer.getResult());
-            for (CtSimpleType<?> t : toBePrinted) {
+            for (CtType<?> t : toBePrinted) {
                 lineNumberMappings.put(t.getQualifiedName(),
                         printer.getLineNumberMapping());
             }
             stream.close();
         } catch (FileNotFoundException e) {
-            Launcher.logger.error(e.getMessage(), e);
+            Launcher.LOGGER.error(e.getMessage(), e);
         } catch (IOException e) {
-            Launcher.logger.error(e.getMessage(), e);
+            Launcher.LOGGER.error(e.getMessage(), e);
         } finally {
             if (stream != null)
                 stream.close();
@@ -187,7 +187,7 @@ public class JavaOutputProcessorWithFilter extends AbstractProcessor<CtSimpleTyp
      * Creates a source file for each processed top-level type and pretty prints
      * its contents.
      */
-    public void process(CtSimpleType<?> type) {
+    public void process(CtType<?> type) {
         if (type.isTopLevel())
             createJavaFile(type);
     }

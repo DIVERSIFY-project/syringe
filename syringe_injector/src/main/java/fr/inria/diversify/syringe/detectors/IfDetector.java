@@ -48,10 +48,9 @@ public class IfDetector extends AbstractDetector<CtIf> {
 
     @Override
     public void process(CtIf element) {
-        int statementListeners = notifyStatementDetection(element, IF_DETECTED);
+        notifyStatementDetection(element, IF_DETECTED);
         notifyBlock(element.getThenStatement(), IF_BODY);
         notifyBlock(element.getElseStatement(), ELSE_BODY);
-        if ( statementListeners == 0 ) elementsDetected++;
     }
 
     @Override

@@ -1,20 +1,11 @@
 package fr.inria.diversify.syringe.detectors;
 
 import fr.inria.diversify.syringe.events.BlockEvent;
-import fr.inria.diversify.syringe.events.DetectionEvent;
-import fr.inria.diversify.syringe.events.StatementDetectionEvent;
 import org.apache.log4j.Logger;
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtLoop;
 import spoon.reflect.code.CtReturn;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourceCodeFragment;
-import spoon.reflect.cu.SourcePosition;
-import spoon.reflect.declaration.CtElement;
 import spoon.reflect.visitor.filter.TypeFilter;
-
-import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -38,17 +29,7 @@ public class LoopDetect extends AbstractDetector<CtLoop> {
         try {
             int statementListeners = notifyStatementDetection(element, LOOP_DETECTED);
             if (listenerCount(LOOP_BLOCK) > 0) {
-                BlockEvent event = new BlockEvent();
-                if (element.getBody() instanceof CtBlock) {
-                    event.setFirstStatement(((CtBlock) element.getBody()).getStatement(0));
-                    event.setLastStatement(((CtBlock) element.getBody()).getLastStatement());
-                    event.setBlock((CtBlock) element.getBody());
-                } else {
-                    event.setFirstStatement(element.getBody());
-                    event.setLastStatement(element.getBody());
-                }
-                event.setReturnStatements(element.getElements(new TypeFilter<CtReturn>(CtReturn.class)));
-                event.setDetected(element);
+                BlockEvent event = new BlockEvent(element, element.getBody());
                 putSignatureIntoEvent(event, element);
                 notify(LOOP_BLOCK, event);
                 if ( statementListeners == 0) elementsDetected++;

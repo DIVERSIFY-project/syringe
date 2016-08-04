@@ -4,6 +4,7 @@ import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtReturn;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.visitor.filter.TypeFilter;
 
 import java.util.List;
 
@@ -36,6 +37,19 @@ public class BlockEvent extends AbstractEvent {
      */
     List<CtReturn> returnStatements;
 
+    public BlockEvent(CtElement element, CtStatement body) {
+        if (body != null && body instanceof CtBlock) {
+            setFirstStatement(((CtBlock) body).getStatement(0));
+            setLastStatement(((CtBlock) body).getLastStatement());
+            setBlock((CtBlock) body);
+        } else {
+            setFirstStatement(body);
+            setLastStatement(body);
+        }
+        setReturnStatements(element.getElements(new TypeFilter<CtReturn>(CtReturn.class)));
+        setDetected(element);
+    }
+
     public BlockEvent(CtElement element, CtBlock block, CtStatement firstStatement,
                       CtStatement lastStatement, List<CtReturn> returnStatements) {
         this.element = element;
@@ -64,8 +78,6 @@ public class BlockEvent extends AbstractEvent {
     public CtStatement getLastStatement() {
         return lastStatement;
     }
-
-
 
     public void setBlock(CtBlock block) {
         this.block = block;

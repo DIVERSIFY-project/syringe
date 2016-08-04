@@ -1,6 +1,5 @@
 package fr.inria.diversify.syringe.detectors;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import fr.inria.diversify.syringe.IdMap;
 import fr.inria.diversify.syringe.events.DetectionEvent;
 import fr.inria.diversify.syringe.events.DetectionListener;
@@ -30,7 +29,7 @@ public interface Detector<E extends CtElement> extends Processor<E> {
      * @param eventName
      * @param eventListener
      */
-    void addListener(String eventName, DetectionListener eventListener) throws InvalidArgumentException;
+    void addListener(String eventName, DetectionListener eventListener);
 
     /**
      * Removes an injector

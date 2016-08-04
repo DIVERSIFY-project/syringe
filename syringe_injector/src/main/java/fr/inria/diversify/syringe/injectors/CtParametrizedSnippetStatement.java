@@ -1,5 +1,6 @@
 package fr.inria.diversify.syringe.injectors;
 
+import spoon.reflect.declaration.CtCodeSnippet;
 import spoon.support.reflect.code.CtCodeSnippetStatementImpl;
 
 import java.util.HashMap;
@@ -64,10 +65,10 @@ public class CtParametrizedSnippetStatement extends CtCodeSnippetStatementImpl {
      * @param value value of the parametrized string
      */
     @Override
-    public void setValue(String value) {
+    public <C extends CtCodeSnippet> C setValue(String value) {
         templateString = value;
         String v = buildValue();
-        super.setValue(v);
+        return super.setValue(v);
     }
 
     private String buildValue() {

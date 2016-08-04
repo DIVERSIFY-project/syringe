@@ -13,7 +13,8 @@ import spoon.reflect.declaration.CtExecutable;
  *
  * Created by marodrig on 17/12/2014.
  */
-public class TransplantPointBranchDetector extends TransplantPointDetector {
+@Deprecated
+public class TransplantPointBranchDetector extends SourceCodePositionDetector {
 
     private CtElement branchParent;
 

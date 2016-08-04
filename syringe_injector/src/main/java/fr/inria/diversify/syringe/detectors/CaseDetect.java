@@ -21,10 +21,10 @@ public class CaseDetect extends AbstractDetector<CtCase> {
     public void process(CtCase element) {
         BlockEvent event = new BlockEvent();
         if ( element.getStatements().size() > 0 ) {
-            event.setFirstStatement((CtStatement) element.getStatements().get(0));
-            event.setLastStatement((CtStatement) element.getStatements().get(element.getStatements().size() - 1));
+            event.setFirstStatement(element.getStatements().get(0));
+            event.setLastStatement(element.getStatements().get(element.getStatements().size() - 1));
         }
-        event.setReturnStatements(element.getElements(new TypeFilter<CtReturn>(CtReturn.class)));
+        event.setReturnStatements(element.getElements(new TypeFilter<>(CtReturn.class)));
         event.setDetected(element);
         putSignatureIntoEvent(event, element);
         elementsDetected++;

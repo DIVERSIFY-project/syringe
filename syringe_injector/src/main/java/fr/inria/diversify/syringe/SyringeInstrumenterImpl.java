@@ -6,6 +6,7 @@ import fr.inria.diversify.syringe.detectors.Detector;
 import fr.inria.diversify.syringe.events.DetectionListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import spoon.Launcher;
 import spoon.compiler.Environment;
 import spoon.processing.ProcessingManager;
 import spoon.processing.Processor;
@@ -42,10 +43,6 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
     //Map with all the IDs of the detected elements
     private IdMap idMap;
 
-    //Flag indicating if only the logger files are going to be copied.
-    //This is used when only the logging logic is changed, not de detection/instrumentation logic.
-    private boolean onlyCopyLogger;
-
     //Properties to be written to the property file of the logger
     private Properties loggerProperties;
     private String loggerPropertiesFile;
@@ -74,24 +71,33 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
 
 
     /**
+     * Updates the logger files in the output
+     * @param configuration Configuration holding all logger files
+     * @throws IOException
+     */
+    public void updateLogger(Configuration configuration) throws IOException {
+        //Copy the logger files given in the configuration to the output directory
+        for (Configuration.LoggerPath p : configuration.getLoggerClassFiles()) {
+            p.copyTo(getOutputDir());
+        }
+    }
+
+    /**
      * Instrument the code and stores a local copy of it
      */
     @Override
     public void instrument(Configuration configuration) throws Exception {
-        //Copy the logger files given in the configuration
-        for (Configuration.LoggerPath p : configuration.getLoggerClassFiles()) {
-            p.copyTo(getOutputDir());
-        }
-        if (onlyCopyLogger) return;
+
+        //Updates the logger files in the output
+        updateLogger(configuration);
 
         //Auto imports in case dependencies could not be properly found
-        boolean autoImports = false;
-
+        //boolean autoImports = false;
         if (resolver == null) {
             try {
                 //Resolve dependencies in order to build as much AST as possible
                 resolver = new MavenDependencyResolver();
-                resolver.DependencyResolver(projectDir + "/pom.xml");
+                resolver.resolveDependencies(projectDir + "/pom.xml");
             } catch (FileNotFoundException e) {
                 logger.warn("Could not found POM file. Using auto imports");
                 throw e;
@@ -117,8 +123,10 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         if (!src.get(0).startsWith(s) && !s.startsWith(src.get(0))) src.add(s);
 
         //Build the factory
-        Factory factory = new SpoonMetaFactory().buildNewFactory(src, 7);
+        //Factory factory = new SpoonMetaFactory().buildNewFactory(src, 7);
 
+        //Detect and listen
+        final Launcher launcher = LauncherBuilder.build(src, outputDir);
         int fragmentsInserted = 0;
         //Instrument, 1. Detect, 2. Inject code.
         for (Detector d : configuration.getDetectors()) {
@@ -131,23 +139,26 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
                 }
             }
 
-            //Detect and listen
-            applyProcessor(factory, d);
-
-            fragmentsInserted += d.getElementsDetectedCount();
         }
 
+        launcher.buildModel();
+        launcher.process();
+
+        for ( Detector d : configuration.getDetectors() )
+            fragmentsInserted += d.getElementsDetectedCount();
 
         //If no new fragments where inserted no need for printing
         if (fragmentsInserted > 0) {
+            launcher.prettyprint();
+            /*
             //Print the instrumented files
             Environment env = factory.getEnvironment();
-            env.useSourceCodeFragments(true);
+            //env. (true);
             applyProcessor(factory,
                     new JavaOutputProcessorWithFilter(new File(getOutputDir() + configuration.getSourceDir()),
                             //new FragmentDrivenJavaPrettyPrinter(env),
                             new DefaultJavaPrettyPrinter(env),
-                            allClassesName(new File(projectDir + configuration.getSourceDir()))));
+                            allClassesName(new File(projectDir + configuration.getSourceDir()))));*/
         } else {
             logger.info("No fragments inserted. Skipping printing of modified sources: nothing to print");
         }
@@ -194,12 +205,12 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
      *
      * @param factory   Factory to apply the processor
      * @param processor Abstract processor
-     */
+
     protected void applyProcessor(Factory factory, Processor processor) {
         ProcessingManager pm = new QueueProcessingManager(factory);
         pm.addProcessor(processor);
-        pm.process();
-    }
+        pm.process(processor);
+    }*/
 
     /**
      * Indicates that we may initialize the output dir
@@ -274,13 +285,15 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
     }
 
     @Override
+    @Deprecated
     public boolean isOnlyCopyLogger() {
-        return onlyCopyLogger;
+        return false;
     }
 
     @Override
+    @Deprecated
     public void setOnlyCopyLogger(boolean onlyCopyLogger) {
-        this.onlyCopyLogger = onlyCopyLogger;
+        //this.onlyCopyLogger = onlyCopyLogger;
     }
 
     @Override

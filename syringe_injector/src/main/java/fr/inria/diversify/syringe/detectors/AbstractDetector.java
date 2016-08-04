@@ -1,6 +1,5 @@
 package fr.inria.diversify.syringe.detectors;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import fr.inria.diversify.syringe.IdMap;
 import fr.inria.diversify.syringe.events.DetectionEvent;
 import fr.inria.diversify.syringe.events.DetectionListener;
@@ -85,15 +84,15 @@ public abstract class AbstractDetector<E extends CtElement> extends AbstractProc
      *
      * @param eventName
      * @param eventListener
-     * @throws InvalidArgumentException when the eventName is not supported by the detector
+     * @throws RuntimeException when the eventName is not supported by the detector
      */
-    public void addListener(String eventName, DetectionListener eventListener) throws InvalidArgumentException {
+    public void addListener(String eventName, DetectionListener eventListener) {
         if ( eventsSupported().contains(eventName) ) {
             if (injectors == null) injectors = new HashMap<>();
             if (!injectors.containsKey(eventName)) injectors.put(eventName, new ArrayList<DetectionListener>());
             injectors.get(eventName).add(eventListener);
         } else {
-            throw new InvalidArgumentException(new String[] {"Event not supported"});
+            throw new RuntimeException("Event not supported");
         }
     }
 

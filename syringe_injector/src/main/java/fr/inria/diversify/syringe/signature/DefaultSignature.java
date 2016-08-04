@@ -11,10 +11,8 @@ import spoon.reflect.declaration.CtElement;
  * are not enough in this case because two semantically equal elements in different positions
  * would have the same signature. Our signature must also include the position of the element.
  *
- * Depending on the detection case, two elements can be equal even if they are not the same. In this case,
- * you can modify its signature.
- *
- *
+ * Depending on the purpose of your detection case, two elements can be considered equal even if they are not in the
+ * same source position. In this case, you can modify its signature.
  *
  * Created by marodrig on 20/02/2015.
  */
