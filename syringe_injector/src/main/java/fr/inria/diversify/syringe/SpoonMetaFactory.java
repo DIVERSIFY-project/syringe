@@ -1,7 +1,9 @@
 package fr.inria.diversify.syringe;
 
 //import fr.inria.diversify.util.Log;
+import spoon.Launcher;
 import spoon.compiler.SpoonCompiler;
+import spoon.processing.Processor;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.factory.FactoryImpl;
 import spoon.support.DefaultCoreFactory;
@@ -15,14 +17,25 @@ import java.util.Collection;
 /**
  * Created by marodrig on 16/06/2014.
  */
-@Deprecated
 public class SpoonMetaFactory {
 
+    public static void process(String folder, Processor processor) {
+        final Launcher launcher = new Launcher();
+        //launcher.getEnvironment().setNoClasspath(true);
+        launcher.addInputResource(folder);
+        launcher.addProcessor(processor);
+        launcher.buildModel();
+        launcher.process();
+    }
+
+    @Deprecated
     public Factory buildNewFactory(String srcDirectory, int javaVersion) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         ArrayList<String> a = new ArrayList<String>();
         a.add(srcDirectory);
         return buildNewFactory(a, javaVersion);
     }
+
+    @Deprecated
     public Factory buildNewFactory(Collection<String> srcDirectory,
                                    int javaVersion) throws
             ClassNotFoundException, IllegalAccessException, InstantiationException {
