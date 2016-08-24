@@ -1,0 +1,35 @@
+#Files to import
+import: /home/usr/properties, /home/usr/properties2
+
+dependencies: [
+  fr.inria -- loogers -- 1.0-SNAPSHOT,
+  fr.inria -- loogers -- 1.0-SNAPSHOT
+]
+
+################
+folder sources: /home/bla/src/test/java
+
+in sources:
+  - at: loop begin
+  - inject: fr.inria.loggers.begin( $ID )
+  - injection_params: LoopId
+
+in sources:
+  - at: loop after
+  - inject: fr.inria.loggers.after( $ID )
+  - injection_params: LoopId
+
+in sources:
+  - at: loop after
+  - run: fr.inria.ModifyLoop
+
+################
+folder test: /home/bla/src/test/java
+
+inject test:
+  - at: test begin
+  - what: fr.inria.loggers.test( $SIGNATURE )
+
+################
+
+runtest: true

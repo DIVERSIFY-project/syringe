@@ -1,5 +1,6 @@
 package fr.inria.diversify.syringe.injectors;
 
+import fr.inria.diversify.syringe.IdMap;
 import spoon.reflect.declaration.CtElement;
 
 import java.util.HashMap;

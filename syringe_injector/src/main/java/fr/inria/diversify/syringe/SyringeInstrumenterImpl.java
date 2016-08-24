@@ -6,15 +6,12 @@ import fr.inria.diversify.syringe.detectors.Detector;
 import fr.inria.diversify.syringe.events.DetectionListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.eclipse.jdt.internal.compiler.problem.AbortCompilation;
 import spoon.Launcher;
-import spoon.compiler.Environment;
-import spoon.processing.ProcessingManager;
-import spoon.processing.Processor;
-import spoon.reflect.factory.Factory;
-import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
-import spoon.support.QueueProcessingManager;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 /**
@@ -50,9 +47,19 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
     //Time out of the maven build
     private int buildTimeOut;
 
+    private boolean useClasspath;
+
+    /**
+     * Java version
+     */
+    private int complianceLevel;
+
+    private boolean fileByFile;
+
 
     public SyringeInstrumenterImpl() {
-
+        complianceLevel = 8;
+        useClasspath = true;
     }
 
     /**
@@ -67,11 +74,14 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         this.productionDir = productionDir;
         this.outputDir = outputDir;
         idMap = new IdMap();
+        complianceLevel = 8;
+        useClasspath = true;
     }
 
 
     /**
      * Updates the logger files in the output
+     *
      * @param configuration Configuration holding all logger files
      * @throws IOException
      */
@@ -88,12 +98,16 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
     @Override
     public void instrument(Configuration configuration) throws Exception {
 
+        logger.info("Instrumenting " + configuration.getDescription());
+        logger.info("Project Dir " + projectDir);
+        logger.info("Output Dir " + outputDir);
+
         //Updates the logger files in the output
         updateLogger(configuration);
 
         //Auto imports in case dependencies could not be properly found
         //boolean autoImports = false;
-        if (resolver == null) {
+        if (resolver == null && (useClasspath || fileByFile)) {
             try {
                 //Resolve dependencies in order to build as much AST as possible
                 resolver = new MavenDependencyResolver();
@@ -116,54 +130,100 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
 
         //Build the factory for the part of the project being instrumented
         ArrayList<String> src = new ArrayList<>();
-        src.add(projectDir + productionDir); //Always add all the source code in the production dir.
+        src.add(projectDir + configuration.getSourceDir()); //Always add all the source code in the production dir.
 
         //If the configuration source dir don't lies within the production, then add it:
-        String s = projectDir + configuration.getSourceDir();
-        if (!src.get(0).startsWith(s) && !s.startsWith(src.get(0))) src.add(s);
+        //String s = projectDir + configuration.getSourceDir();
+        //if (!src.get(0).startsWith(s) && !s.startsWith(src.get(0))) src.add(s);
 
-        //Build the factory
-        //Factory factory = new SpoonMetaFactory().buildNewFactory(src, 7);
-
-        //Detect and listen
-        final Launcher launcher = LauncherBuilder.build(src, outputDir);
-        int fragmentsInserted = 0;
-        //Instrument, 1. Detect, 2. Inject code.
+        //Link the detectors with the injectors listening to their particular events
         for (Detector d : configuration.getDetectors()) {
             d.setIdMap(idMap);
             //Collect relevant injectors to the events this detector will detect
-            for (Map.Entry<String, Collection<DetectionListener>> e :
-                    configuration.getInjectors().entrySet()) {
-                for (DetectionListener eventListener : e.getValue()) {
+            for (Map.Entry<String, Collection<DetectionListener>> e : configuration.getInjectors().entrySet())
+                for (DetectionListener eventListener : e.getValue())
                     d.addListener(e.getKey(), eventListener);
-                }
-            }
-
         }
 
-        launcher.buildModel();
-        launcher.process();
+        //Detect and listen
+        if (isFileByFile()) walk(configuration, src);
+        else launchInjection(configuration, src);
 
-        for ( Detector d : configuration.getDetectors() )
+    }
+
+    /**
+     * Inject a given configuration and a set of sources, launchInjection them
+     */
+    private void launchInjection(Configuration configuration, List<String> src) {
+
+        if (logger.isInfoEnabled()) for (String s : src) logger.info("Processing: " + s);
+
+        final Launcher launcher = LauncherBuilder.build(src, outputDir + configuration.getSourceDir());
+        launcher.getEnvironment().setComplianceLevel(getComplianceLevel());
+        launcher.getEnvironment().setNoClasspath(!useClasspath);
+
+        int fragmentsInserted = 0;
+        for (Detector d : configuration.getDetectors()) launcher.addProcessor(d);
+
+        //Try to compile using the classpath first
+        try {
+            if (isFileByFile()) launcher.getEnvironment().setNoClasspath(false);
+            launcher.buildModel();
+            launcher.process();
+        } catch (AbortCompilation ex) {
+            logger.info("Compilation aborted, trying without classpath");
+            if (isFileByFile()) {
+                for (Detector d : configuration.getDetectors()) d.reset();
+                launcher.getEnvironment().setNoClasspath(true);
+                launcher.process();
+            }
+        }
+
+        for (Detector d : configuration.getDetectors())
             fragmentsInserted += d.getElementsDetectedCount();
 
         //If no new fragments where inserted no need for printing
         if (fragmentsInserted > 0) {
             launcher.prettyprint();
-            /*
-            //Print the instrumented files
-            Environment env = factory.getEnvironment();
-            //env. (true);
-            applyProcessor(factory,
-                    new JavaOutputProcessorWithFilter(new File(getOutputDir() + configuration.getSourceDir()),
-                            //new FragmentDrivenJavaPrettyPrinter(env),
-                            new DefaultJavaPrettyPrinter(env),
-                            allClassesName(new File(projectDir + configuration.getSourceDir()))));*/
+            logger.info("Elements detected: " + fragmentsInserted);
         } else {
-            logger.info("No fragments inserted. Skipping printing of modified sources: nothing to print");
+            logger.info("No fragments. Sources unmodified");
         }
 
+        for (Detector d : configuration.getDetectors()) d.reset();
+    }
 
+    /**
+     * Walks file by file in in a given sources, injecting them
+     */
+    private void walk(final Configuration configuration, ArrayList<String> src) throws IOException {
+        for (String s : src)
+            Files.walkFileTree(Paths.get(s), new FileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    try {
+                        launchInjection(configuration, Arrays.asList(file.toAbsolutePath().toString()));
+                    } catch (Exception ex) {
+                        logger.warn("Error: " + ex.getMessage() + " at " + file.toString());
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+                    return FileVisitResult.TERMINATE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    return FileVisitResult.CONTINUE;
+                }
+            });
     }
 
     /**
@@ -207,9 +267,9 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
      * @param processor Abstract processor
 
     protected void applyProcessor(Factory factory, Processor processor) {
-        ProcessingManager pm = new QueueProcessingManager(factory);
-        pm.addProcessor(processor);
-        pm.process(processor);
+    ProcessingManager pm = new QueueProcessingManager(factory);
+    pm.addProcessor(processor);
+    pm.process(processor);
     }*/
 
     /**
@@ -312,5 +372,30 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
             loggerProperties.store(new BufferedWriter(
                     new FileWriter(logFile.getAbsolutePath() + "/" + loggerPropertiesFile)), "");
         }
+    }
+
+    @Override
+    public void setUseClassPath(boolean use) {
+        useClasspath = use;
+    }
+
+    public int getComplianceLevel() {
+        return complianceLevel;
+    }
+
+    public void setComplianceLevel(int complianceLevel) {
+        this.complianceLevel = complianceLevel;
+    }
+
+    /**
+     * Compiles, detect and launchInjection file by file in a project. Much more slower, use only when injecting the whole
+     * project don't works
+     */
+    public boolean isFileByFile() {
+        return fileByFile;
+    }
+
+    public void setFileByFile(boolean fileByFile) {
+        this.fileByFile = fileByFile;
     }
 }

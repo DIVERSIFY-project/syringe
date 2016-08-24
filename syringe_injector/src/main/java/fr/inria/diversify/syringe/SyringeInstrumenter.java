@@ -36,4 +36,10 @@ public interface SyringeInstrumenter {
     void setBuildTimeOut(int seconds);
 
     void writeLoggerProperties(String fileName, Properties properties) throws IOException;
+
+    void setUseClassPath(boolean use);
+
+    public int getComplianceLevel() ;
+
+    public void setComplianceLevel(int complianceLevel) ;
 }

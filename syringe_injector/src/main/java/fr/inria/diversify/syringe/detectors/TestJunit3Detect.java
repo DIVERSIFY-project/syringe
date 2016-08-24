@@ -1,6 +1,7 @@
 package fr.inria.diversify.syringe.detectors;
 
 import spoon.reflect.declaration.CtAnnotation;
+import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.reference.CtTypeReference;
 
@@ -9,10 +10,7 @@ import spoon.reflect.reference.CtTypeReference;
  *
  * Created by marodrig on 08/12/2014.
  */
-public class TestDetect extends MethodDetect {
-
-    public static String BEGIN_KEY= "@Test.Begin@";
-    public static String END_KEY = "@Test.End@";
+public class TestJunit3Detect extends MethodDetect {
 
     @Override
     public boolean isToBeProcessed(CtExecutable candidate) {
@@ -20,23 +18,24 @@ public class TestDetect extends MethodDetect {
         if(!(isTestClass(candidate.getDeclaringType().getReference())))
             return false;*/
 
-        if(candidate.isImplicit()
+        if (candidate.isImplicit()
                 || candidate.getBody() == null
                 || candidate.getBody().getStatements().size() == 0)
             return false;
 
-        for(CtAnnotation<?> annotation: candidate.getAnnotations())
-            if(annotation.toString().startsWith("@org.junit.Test") ||
-                    annotation.toString().startsWith("@org.junit.Before") ||
-                    annotation.toString().startsWith("@org.junit.After"))
-                return true;
-
-        if(candidate.getSimpleName().contains("test"))
+        if (candidate.getSimpleName().contains("test")) {
+            CtTypeReference ctClass = candidate.getParent(CtClass.class).getSuperclass();
+            while ( ctClass != null ) {
+                String qn = ctClass.getQualifiedName();
+                if ( qn != null && qn.equals("junit.framework.TestCase") ) return true;
+                else ctClass = ctClass.getSuperclass();
+            }
             return true;
+        }
 
         return false;
     }
-
+    /*
     protected boolean isTestClass(CtTypeReference<?> type) {
         if(type.getSimpleName().endsWith("Test") || type.getSimpleName().endsWith("Behaviour")) // Behaviour for jbehave
             return true;
@@ -46,7 +45,5 @@ public class TestDetect extends MethodDetect {
             } catch (Exception e) {}
         }
         return false;
-    }
-
-
+    }*/
 }

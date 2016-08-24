@@ -37,6 +37,16 @@ public class GenericInjector implements Injector {
         BEFORE, FIRST, LAST, AFTER
     }
 
+    public GenericInjector() {
+
+    }
+
+    public GenericInjector(String template, ParameterCollector collector, InjectionPosition position) {
+        setInjectionTemplate(template);
+        setParameterCollector(collector);
+        setInjectAt(position);
+    }
+
     public InjectionPosition getInjectAt() {
         return injectAt;
     }
@@ -53,10 +63,12 @@ public class GenericInjector implements Injector {
         this.parameterCollector = parameterCollector;
     }
 
+    @Deprecated
     public IdMap getIdMap() {
         return idMap;
     }
 
+    @Deprecated
     public void setIdMap(IdMap idMap) {
         this.idMap = idMap;
     }
@@ -82,14 +94,17 @@ public class GenericInjector implements Injector {
             else params = new HashMap<>();
 
             CtParametrizedSnippetStatement pst = new CtParametrizedSnippetStatement();
+            pst.setFactory(st.getFactory());
+            pst.setParent(st.getParent());
             pst.setValue(injection);
             pst.setParameters(params);
 
             if ( injectAt == InjectionPosition.BEFORE ) {
                 st.insertBefore(pst);
-            } else if ( injectAt == InjectionPosition.AFTER ) {
-                st.insertAfter(st);
+            } else /*f ( injectAt == InjectionPosition.AFTER )*/ {
+                st.insertAfter(pst);
             }
+
         } else throw new RuntimeException("Only statements allowed in injection");
     }
 }

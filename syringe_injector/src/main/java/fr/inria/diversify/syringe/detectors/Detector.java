@@ -71,7 +71,12 @@ public interface Detector<E extends CtElement> extends Processor<E> {
      */
     SignatureGenerator getSignature();
 
-    /*
+    /**
+     * Resets the detector to its original state
+     */
+    void reset();
+
+        /*
     @Deprecated
     void setInjectors(Collection<BaseInjector> injectors);
 

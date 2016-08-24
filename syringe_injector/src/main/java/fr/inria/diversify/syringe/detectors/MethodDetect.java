@@ -1,14 +1,9 @@
 package fr.inria.diversify.syringe.detectors;
 
 import fr.inria.diversify.syringe.events.BlockEvent;
-import spoon.reflect.code.CtBlock;
-import spoon.reflect.code.CtInvocation;
+import fr.inria.diversify.syringe.events.StatementDetectionEvent;
 import spoon.reflect.code.CtStatement;
-import spoon.reflect.cu.CompilationUnit;
-import spoon.reflect.cu.SourcePosition;
-import spoon.reflect.declaration.CtConstructor;
 import spoon.reflect.declaration.CtExecutable;
-import spoon.support.reflect.code.CtCodeSnippetStatementImpl;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,24 +15,21 @@ import java.util.Collection;
  */
 public class MethodDetect extends AbstractDetector<CtExecutable> {
 
-    public static String BEGIN_KEY = "@Method.Begin@";
-    public static String END_KEY = "@Method.End@";
+    public static String METHOD_BEGIN = "@Method.Begin@";
+    public static String METHOD_END = "@Method.End@";
 
     @Override
     public Collection<String> eventsSupported() {
-        return Arrays.asList(BEGIN_KEY, END_KEY);
+        return Arrays.asList(METHOD_BEGIN, METHOD_END);
     }
 
     @Override
-    public void process(CtExecutable executable) {
-        int bCount = listenerCount(BEGIN_KEY);
-        int eCount = listenerCount(END_KEY);
-        if (bCount > 0 || eCount > 0) {
-            BlockEvent event = new BlockEvent(executable, executable.getBody());
-            putSignatureIntoEvent(event, executable);
-            if (bCount > 0) notify(BEGIN_KEY, event);
-            if (eCount > 0) notify(END_KEY, event);
-            elementsDetected++;
+    public void process(CtExecutable ex) {
+        if ( ex.getBody().getStatements().size() > 0) {
+            if (listenerCount(METHOD_BEGIN) > 0)
+                notifyStatementDetection(ex.getBody().getStatement(0), METHOD_BEGIN);
+            if (listenerCount(METHOD_END) > 0)
+                notifyStatementDetection(ex.getBody().getLastStatement(), METHOD_END);
         }
     }
 

@@ -13,6 +13,7 @@ import java.util.List;
  * <p/>
  * Created by marodrig on 14/12/2015.
  */
+@Deprecated
 public class BlockEvent extends AbstractEvent {
 
     private CtElement element;

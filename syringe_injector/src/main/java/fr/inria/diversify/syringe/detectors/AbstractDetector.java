@@ -92,7 +92,7 @@ public abstract class AbstractDetector<E extends CtElement> extends AbstractProc
             if (!injectors.containsKey(eventName)) injectors.put(eventName, new ArrayList<DetectionListener>());
             injectors.get(eventName).add(eventListener);
         } else {
-            throw new RuntimeException("Event not supported");
+            throw new RuntimeException("Event not supported. Make sure your listerners are listening to the right event");
         }
     }
 
@@ -121,6 +121,9 @@ public abstract class AbstractDetector<E extends CtElement> extends AbstractProc
         }
     }
 
+    public void reset() {
+        elementsDetected = 0;
+    }
 
     /**
      * Performs the detection of the whole statement
