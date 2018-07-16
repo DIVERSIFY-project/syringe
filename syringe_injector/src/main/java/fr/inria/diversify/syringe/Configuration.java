@@ -3,6 +3,7 @@ package fr.inria.diversify.syringe;
 import fr.inria.diversify.syringe.detectors.Detector;
 import fr.inria.diversify.syringe.events.DetectionListener;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.aether.util.artifact.JavaScopes;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +17,13 @@ import java.util.*;
  */
 public class Configuration {
 
+    private HashSet<String> scopes;
+
     private String description = "";
+
+    public HashSet<String> getScopes() {
+        return scopes;
+    }
 
     /**
      * Hack: In case the logger classes are not in System.getProperty(user.dir)
@@ -89,6 +96,8 @@ public class Configuration {
     public Configuration(String source) {
         description = source;
         sourceDir = source;
+        scopes = new HashSet<>();
+        scopes.add(JavaScopes.COMPILE);
     }
 
     /**

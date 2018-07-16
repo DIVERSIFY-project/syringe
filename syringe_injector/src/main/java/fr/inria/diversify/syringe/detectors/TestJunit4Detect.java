@@ -6,7 +6,7 @@ import spoon.reflect.reference.CtTypeReference;
 
 /**
  * Detect the begin of a method
- *
+ * <p>
  * Created by marodrig on 08/12/2014.
  */
 public class TestJunit4Detect extends MethodDetect {
@@ -16,19 +16,28 @@ public class TestJunit4Detect extends MethodDetect {
         /*
         if(!(isTestClass(candidate.getDeclaringType().getReference())))
             return false;*/
+        try {
 
-        if (candidate.isImplicit()
-                || candidate.getBody() == null
-                || candidate.getBody().getStatements().size() == 0)
+            if (candidate.isImplicit()
+                    || candidate.getBody() == null
+                    || candidate.getBody().getStatements().size() == 0)
+                return false;
+
+            for (CtAnnotation<?> annotation : candidate.getAnnotations()) {
+                String a = annotation.toString();
+                if (a.startsWith("@Test") ||
+                        a.startsWith("@Before") ||
+                        a.startsWith("@After") ||
+                        a.startsWith("@org.junit.Test") ||
+                        a.startsWith("@org.junit.Before") ||
+                        a.startsWith("@org.junit.After"))
+                    return true;
+            }
             return false;
-
-        for (CtAnnotation<?> annotation : candidate.getAnnotations())
-            if (annotation.toString().startsWith("@org.junit.Test") ||
-                    annotation.toString().startsWith("@org.junit.Before") ||
-                    annotation.toString().startsWith("@org.junit.After"))
-                return true;
-
-        return false;
+        } catch ( Exception ex) {
+            ex.printStackTrace();
+            throw ex;
+        }
     }
     /*
     protected boolean isTestClass(CtTypeReference<?> type) {

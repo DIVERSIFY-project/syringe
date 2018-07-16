@@ -25,11 +25,16 @@ public class MethodDetect extends AbstractDetector<CtExecutable> {
 
     @Override
     public void process(CtExecutable ex) {
-        if ( ex.getBody().getStatements().size() > 0) {
-            if (listenerCount(METHOD_BEGIN) > 0)
-                notifyStatementDetection(ex.getBody().getStatement(0), METHOD_BEGIN);
-            if (listenerCount(METHOD_END) > 0)
-                notifyStatementDetection(ex.getBody().getLastStatement(), METHOD_END);
+        try {
+            if (ex.getBody().getStatements().size() > 0) {
+                if (listenerCount(METHOD_BEGIN) > 0)
+                    notifyStatementDetection(ex.getBody().getStatement(0), METHOD_BEGIN);
+                if (listenerCount(METHOD_END) > 0)
+                    notifyStatementDetection(ex.getBody().getLastStatement(), METHOD_END);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
     }
 

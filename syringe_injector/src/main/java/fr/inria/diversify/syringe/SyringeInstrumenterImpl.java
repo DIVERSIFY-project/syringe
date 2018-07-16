@@ -1,7 +1,7 @@
 package fr.inria.diversify.syringe;
 
 import fr.inria.diversify.buildSystem.maven.MavenBuilder;
-import fr.inria.diversify.buildSystem.maven.MavenDependencyResolver;
+import fr.inria.diversify.syringe.dependencies.DependencyResolver;
 import fr.inria.diversify.syringe.detectors.Detector;
 import fr.inria.diversify.syringe.events.DetectionListener;
 import org.apache.commons.io.FileUtils;
@@ -23,6 +23,13 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
 
     final static Logger logger = Logger.getLogger(SyringeInstrumenterImpl.class);
 
+    private String pomPath;
+
+    /**
+     * Some jars could not be resolved by the maven resolver.
+     */
+    private List<String> classPath;
+
     //Indicates that we must initialize the output folder
     private boolean outPutDirReady = false;
 
@@ -35,7 +42,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
     //Directory where the production code is
     private String productionDir;
 
-    MavenDependencyResolver resolver = null;
+    //MavenDependencyResolver resolver = null;
 
     //Map with all the IDs of the detected elements
     private IdMap idMap;
@@ -56,10 +63,14 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
 
     private boolean fileByFile;
 
+    private HashSet<String> failedDirs;
+
 
     public SyringeInstrumenterImpl() {
         complianceLevel = 8;
         useClasspath = true;
+        idMap = new IdMap();
+        failedDirs = new HashSet<>();
     }
 
     /**
@@ -70,14 +81,11 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
      * @param outputDir     Output directory where the instrumented code is going to be stored
      */
     public SyringeInstrumenterImpl(String projectDir, String productionDir, String outputDir) {
+        this();
         this.projectDir = projectDir;
         this.productionDir = productionDir;
         this.outputDir = outputDir;
-        idMap = new IdMap();
-        complianceLevel = 8;
-        useClasspath = true;
     }
-
 
     /**
      * Updates the logger files in the output
@@ -92,18 +100,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         }
     }
 
-    /**
-     * Instrument the code and stores a local copy of it
-     */
-    @Override
-    public void instrument(Configuration configuration) throws Exception {
-
-        logger.info("Instrumenting " + configuration.getDescription());
-        logger.info("Project Dir " + projectDir);
-        logger.info("Output Dir " + outputDir);
-
-        //Updates the logger files in the output
-        updateLogger(configuration);
+     /* public void resolveDependencies(String pomPath) {
 
         //Auto imports in case dependencies could not be properly found
         //boolean autoImports = false;
@@ -111,11 +108,31 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
             try {
                 //Resolve dependencies in order to build as much AST as possible
                 resolver = new MavenDependencyResolver();
+                resolver.setManualClassPath(classPath);
                 resolver.resolveDependencies(projectDir + "/pom.xml");
             } catch (FileNotFoundException e) {
                 logger.warn("Could not found POM file. Using auto imports");
                 throw e;
             }
+
+    }}*/
+
+    /**
+     * Instrument the code and stores a local copy of it
+     */
+    @Override
+    public void instrument(Configuration configuration) throws Exception {
+        logger.info("Instrumenting " + configuration.getDescription());
+        logger.info("Project Dir " + projectDir);
+        logger.info("Output Dir " + outputDir);
+
+        //Updates the logger files in the output
+        updateLogger(configuration);
+
+        //Resolve dependencies of the project
+        if ( useClasspath ) {
+            DependencyResolver resolver = new DependencyResolver();
+            resolver.resolve(configuration, getPomPath(), getManualClassPath());
         }
 
         //This is done only once.
@@ -146,7 +163,13 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         }
 
         //Detect and listen
-        if (isFileByFile()) walk(configuration, src);
+        if (isFileByFile()) {
+            setUseClassPath(true);
+            walk(configuration, src, null);
+            setUseClassPath(false);
+            if ( failedDirs.size() > 0 ) walk(configuration, src, failedDirs);
+            setUseClassPath(useClasspath);
+        }
         else launchInjection(configuration, src);
 
     }
@@ -161,22 +184,19 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
         final Launcher launcher = LauncherBuilder.build(src, outputDir + configuration.getSourceDir());
         launcher.getEnvironment().setComplianceLevel(getComplianceLevel());
         launcher.getEnvironment().setNoClasspath(!useClasspath);
+        launcher.getEnvironment().setAutoImports(true);
 
         int fragmentsInserted = 0;
         for (Detector d : configuration.getDetectors()) launcher.addProcessor(d);
 
         //Try to compile using the classpath first
         try {
-            if (isFileByFile()) launcher.getEnvironment().setNoClasspath(false);
             launcher.buildModel();
             launcher.process();
-        } catch (AbortCompilation ex) {
-            logger.info("Compilation aborted, trying without classpath");
-            if (isFileByFile()) {
-                for (Detector d : configuration.getDetectors()) d.reset();
-                launcher.getEnvironment().setNoClasspath(true);
-                launcher.process();
-            }
+        } catch (Exception ex) {
+            failedDirs.add(src.get(0));
+            logger.warn("Error: " + ex.getMessage());
+            throw  ex;
         }
 
         for (Detector d : configuration.getDetectors())
@@ -196,13 +216,16 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
     /**
      * Walks file by file in in a given sources, injecting them
      */
-    private void walk(final Configuration configuration, ArrayList<String> src) throws IOException {
+    private void walk(final Configuration configuration, ArrayList<String> src,
+                      final HashSet<String> failed) throws IOException {
         for (String s : src)
             Files.walkFileTree(Paths.get(s), new FileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     try {
-                        launchInjection(configuration, Arrays.asList(file.toAbsolutePath().toString()));
+                        String filePath = file.toAbsolutePath().toString();
+                        if (failed == null || failed.contains(filePath))
+                            launchInjection(configuration, Arrays.asList(filePath));
                     } catch (Exception ex) {
                         logger.warn("Error: " + ex.getMessage() + " at " + file.toString());
                     }
@@ -244,6 +267,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
      * @param dir Dir to find for java files
      * @return A list of java files
      */
+    /*
     protected List<String> allClassesName(File dir) {
         List<String> list = new ArrayList<>();
 
@@ -258,7 +282,7 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
                 }
             }
         return list;
-    }
+    }*/
 
     /**
      * Applies an spoon processor
@@ -397,5 +421,27 @@ public class SyringeInstrumenterImpl implements SyringeInstrumenter {
 
     public void setFileByFile(boolean fileByFile) {
         this.fileByFile = fileByFile;
+    }
+
+    /**
+     * Manual classpath that the maven resolver cannot resolve because is so stupid.
+     */
+    public List<String> getManualClassPath() {
+        return classPath;
+    }
+
+    public void setManualClassPath(List<String> classPath) {
+        this.classPath = classPath;
+    }
+
+    /**
+     * Path to the pom file. Can be null, in that case, it will be equal to "projectDir/pom.xml"
+     */
+    public String getPomPath() {
+        return pomPath == null ? getProductionDir() + "/pom.xml" : pomPath;
+    }
+
+    public void setPomPath(String pomPath) {
+        this.pomPath = pomPath;
     }
 }
